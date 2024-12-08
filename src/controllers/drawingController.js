@@ -47,8 +47,16 @@ exports.createDrawing = async (req, res) => {
       return res.status(400).json({ message: 'Please upload an image' });
     }
 
+    // Validate file type
+    if (!req.file.mimetype.startsWith('image/')) {
+      return res.status(400).json({ message: 'Please upload a valid image file' });
+    }
+
     // Upload to cloudinary
-    const result = await cloudinary.uploader.upload(req.file.path);
+    const result = await cloudinary.uploader.upload(req.file.path, {
+      folder: 'drawings',
+      resource_type: 'auto'
+    });
 
     // Remove the file from local storage after successful upload
     fs.unlink(req.file.path, (err) => {
@@ -75,6 +83,7 @@ exports.createDrawing = async (req, res) => {
         }
       });
     }
+    console.error('Error creating drawing:', error);
     res.status(500).json({ message: error.message });
   }
 };
