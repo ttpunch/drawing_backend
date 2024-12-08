@@ -10,7 +10,6 @@ exports.getComments = async (req, res) => {
       .sort('-createdAt');
     res.json(comments);
   } catch (error) {
-    console.error('Error getting comments:', error);
     res.status(500).json({ message: error.message });
   }
 };
@@ -32,7 +31,6 @@ exports.addComment = async (req, res) => {
     await comment.populate('user', 'username name');
     res.status(201).json(comment);
   } catch (error) {
-    console.error('Error adding comment:', error);
     res.status(500).json({ message: error.message });
   }
 };
@@ -57,7 +55,6 @@ exports.updateComment = async (req, res) => {
     await comment.populate('user', 'username name');
     res.json(comment);
   } catch (error) {
-    console.error('Error updating comment:', error);
     res.status(500).json({ message: error.message });
   }
 };
@@ -72,7 +69,6 @@ exports.getUserComments = async (req, res) => {
       .sort('-createdAt');
     res.json(comments);
   } catch (error) {
-    console.error('Error getting user comments:', error);
     res.status(500).json({ message: error.message });
   }
 };
@@ -94,7 +90,6 @@ exports.deleteComment = async (req, res) => {
     await comment.deleteOne();
     res.json({ message: 'Comment deleted successfully' });
   } catch (error) {
-    console.error('Error deleting comment:', error);
     res.status(500).json({ message: error.message });
   }
 };

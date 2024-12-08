@@ -28,8 +28,6 @@ const enrollmentRoutes = require('./routes/enrollment');
 // Debug middleware - only in development
 if (process.env.NODE_ENV !== 'production') {
   app.use((req, res, next) => {
-    console.log(`${req.method} ${req.url}`);
-    console.log('Headers:', req.headers);
     next();
   });
 }
@@ -54,8 +52,6 @@ app.use((req, res, next) => {
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-  console.error('Server error:', err);
-  
   // Handle specific error types
   if (err.name === 'ValidationError') {
     return res.status(400).json({
@@ -89,13 +85,9 @@ mongoose.connect(process.env.MONGODB_URI, {
   useUnifiedTopology: true
 })
 .then(() => {
-  console.log('Connected to MongoDB');
-  app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-  });
+  app.listen(PORT);
 })
 .catch(err => {
-  console.error('MongoDB connection error:', err);
   process.exit(1);
 });
 

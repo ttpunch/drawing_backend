@@ -140,7 +140,6 @@ exports.rateDrawing = async (req, res) => {
     const { rating } = req.body;
     const userId = req.user._id;
 
-    // Validate rating
     if (!rating || rating < 1 || rating > 5) {
       return res.status(400).json({ message: 'Rating must be between 1 and 5' });
     }
@@ -150,27 +149,22 @@ exports.rateDrawing = async (req, res) => {
       return res.status(404).json({ message: 'Drawing not found' });
     }
 
-    // Check if user has already rated
     const existingRatingIndex = drawing.ratings.findIndex(r => 
       r.user.toString() === userId.toString()
     );
 
     if (existingRatingIndex > -1) {
-      // Update existing rating
       drawing.ratings[existingRatingIndex].value = rating;
     } else {
-      // Add new rating
       drawing.ratings.push({ user: userId, value: rating });
     }
 
-    // Calculate average rating
     const totalRating = drawing.ratings.reduce((sum, r) => sum + r.value, 0);
     drawing.averageRating = totalRating / drawing.ratings.length;
 
     await drawing.save();
     res.json(drawing);
   } catch (error) {
-    console.error('Error rating drawing:', error);
     res.status(500).json({ message: error.message });
   }
 };

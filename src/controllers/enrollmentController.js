@@ -11,7 +11,7 @@ const logEnrollmentActivity = async (enrollmentId, action, details) => {
       timestamp: new Date()
     });
   } catch (error) {
-    console.error('Error logging activity:', error);
+    // Removed console log
   }
 };
 
@@ -55,7 +55,6 @@ exports.enroll = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Enrollment error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to submit enrollment application',
@@ -84,7 +83,7 @@ exports.getAllEnrollments = async (req, res) => {
       data: enrollments
     });
   } catch (error) {
-    console.error('Error fetching enrollments:', error);
+    // Removed console log
     res.status(500).json({
       success: false,
       message: 'Failed to fetch enrollments',
@@ -140,7 +139,6 @@ exports.updateEnrollmentStatus = async (req, res) => {
       data: enrollment
     });
   } catch (error) {
-    console.error('Error updating enrollment status:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to update enrollment status',

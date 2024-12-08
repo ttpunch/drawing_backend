@@ -85,17 +85,14 @@ app.use('/comments', commentRoutes);
 // Page views endpoint (separate from stats)
 app.get('/stats/pageviews', async (req, res) => {
   try {
-    console.log('Fetching page views...');
     const pageView = await PageView.findOne();
     
     if (!pageView) {
-      console.log('No page views found, creating initial record');
       const newPageView = new PageView({ count: 0 });
       await newPageView.save();
       return res.json({ pageViews: 0 });
     }
 
-    console.log('Page views found:', pageView.count);
     res.json({ pageViews: pageView.count });
   } catch (error) {
     console.error('Error fetching page views:', error);
@@ -106,8 +103,6 @@ app.get('/stats/pageviews', async (req, res) => {
 // Admin stats endpoint (without page views)
 app.get('/admin/stats', async (req, res) => {
   try {
-    console.log('Fetching admin stats...');
-    
     // Use Promise.all for parallel execution
     const [totalUsers, pendingUsers, totalDrawings, totalComments] = await Promise.all([
       User.countDocuments(),
@@ -123,7 +118,6 @@ app.get('/admin/stats', async (req, res) => {
       totalComments
     };
     
-    console.log('Admin stats:', stats);
     res.json(stats);
   } catch (error) {
     console.error('Error in admin stats:', error);
@@ -141,7 +135,6 @@ if (process.env.NODE_ENV === 'production') {
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-  console.error('Error:', err);
   res.status(500).json({ 
     message: 'Internal server error',
     error: process.env.NODE_ENV === 'development' ? err.message : undefined 
@@ -154,28 +147,13 @@ mongoose.connect(process.env.MONGODB_URI, {
   useUnifiedTopology: true,
 })
 .then(() => {
-  console.log('MongoDB Connected Successfully');
-  // Test database connection by counting users
   return User.countDocuments();
 })
 .then(count => {
-  console.log(`Database connection test: Found ${count} users`);
+  app.listen(PORT);
 })
 .catch(err => {
-  console.error('MongoDB connection error:', err);
   process.exit(1);
 });
 
-// Handle MongoDB connection errors
-mongoose.connection.on('error', err => {
-  console.error('MongoDB connection error:', err);
-});
-
-mongoose.connection.on('disconnected', () => {
-  console.log('MongoDB disconnected');
-});
-
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});

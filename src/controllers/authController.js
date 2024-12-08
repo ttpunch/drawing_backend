@@ -98,7 +98,6 @@ exports.login = async (req, res) => {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
-    // Generate token with user info
     const token = jwt.sign(
       { 
         userId: user._id,
@@ -108,13 +107,6 @@ exports.login = async (req, res) => {
       process.env.JWT_SECRET, 
       { expiresIn: '30d' }
     );
-
-    // Log the token payload for debugging
-    console.log('Login successful for user:', {
-      userId: user._id,
-      role: user.role,
-      username: user.username
-    });
 
     res.json({
       user: {
@@ -126,7 +118,6 @@ exports.login = async (req, res) => {
       token
     });
   } catch (error) {
-    console.error('Login error:', error);
     res.status(500).json({ message: 'Error in login' });
   }
 };
@@ -158,19 +149,16 @@ exports.resetPassword = async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Verify security answer
     const isAnswerCorrect = await user.compareSecurityAnswer(securityAnswer);
     if (!isAnswerCorrect) {
       return res.status(401).json({ message: 'Incorrect security answer' });
     }
 
-    // Update password
     user.password = newPassword;
     await user.save();
 
     res.json({ message: 'Password reset successful' });
   } catch (error) {
-    console.error('Error resetting password:', error);
     res.status(500).json({ message: 'Error resetting password' });
   }
 };

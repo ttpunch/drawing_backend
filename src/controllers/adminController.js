@@ -46,7 +46,6 @@ exports.adminLogin = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Admin login error:', error);
     res.status(500).json({ message: 'Error during login' });
   }
 };
@@ -54,32 +53,20 @@ exports.adminLogin = async (req, res) => {
 // Get admin stats
 exports.getAdminStats = async (req, res) => {
   try {
-    // Verify admin role
     if (!req.user || req.user.role !== 'admin') {
       return res.status(403).json({ message: 'Access denied. Admin privileges required.' });
     }
 
-    // Check MongoDB connection
     if (mongoose.connection.readyState !== 1) {
       return res.status(500).json({ message: 'Database connection error' });
     }
 
-    // Get counts with error checking
     const [totalUsers, pendingUsers, totalDrawings, totalComments] = await Promise.all([
       User.countDocuments(),
       User.countDocuments({ status: 'pending' }),
       Drawing.countDocuments(),
       Comment.countDocuments()
     ]);
-
-    // Debug logging
-    console.log('Admin stats retrieved:', {
-      adminUser: req.user.username,
-      totalUsers,
-      pendingUsers,
-      totalDrawings,
-      totalComments
-    });
 
     res.json({
       totalUsers,
@@ -88,7 +75,6 @@ exports.getAdminStats = async (req, res) => {
       totalComments
     });
   } catch (error) {
-    console.error('Admin stats error:', error);
     res.status(500).json({ 
       message: 'Error fetching admin statistics',
       error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
@@ -121,7 +107,6 @@ exports.getAllUsers = async (req, res) => {
       totalUsers: total
     });
   } catch (error) {
-    console.error('Error getting users:', error);
     res.status(500).json({ message: error.message });
   }
 };
@@ -183,26 +168,20 @@ exports.deleteDrawing = async (req, res) => {
   try {
     const { id } = req.params;
     
-    // Find the drawing
     const drawing = await Drawing.findById(id);
     if (!drawing) {
       return res.status(404).json({ message: 'Drawing not found' });
     }
 
-    // Delete image from Cloudinary if it exists
     if (drawing.cloudinaryId) {
       await cloudinary.uploader.destroy(drawing.cloudinaryId);
     }
 
-    // Delete drawing from database
     await Drawing.findByIdAndDelete(id);
-
-    // Delete associated comments
     await Comment.deleteMany({ drawing: id });
 
     res.json({ message: 'Drawing deleted successfully' });
   } catch (error) {
-    console.error('Error deleting drawing:', error);
     res.status(500).json({ 
       message: 'Error deleting drawing',
       error: error.message 
@@ -219,18 +198,14 @@ exports.deleteUser = async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Delete user's drawings if they exist
     await Drawing.deleteMany({ user: user._id });
     
-    // Delete user's comments if they exist
     await Comment.deleteMany({ user: user._id });
     
-    // Delete the user
     await user.deleteOne();
 
     res.json({ message: 'User and associated data deleted successfully' });
   } catch (error) {
-    console.error('Error deleting user:', error);
     res.status(500).json({ message: error.message });
   }
 };
@@ -238,17 +213,14 @@ exports.deleteUser = async (req, res) => {
 // Get page views
 exports.getPageViews = async (req, res) => {
   try {
-    // Verify admin role
     if (!req.user || req.user.role !== 'admin') {
       return res.status(403).json({ message: 'Access denied. Admin privileges required.' });
     }
 
-    // For now, return a mock value since we don't have actual page view tracking
     res.json({
       pageViews: 0
     });
   } catch (error) {
-    console.error('Page views error:', error);
     res.status(500).json({ 
       message: 'Error fetching page views',
       error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
