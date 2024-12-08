@@ -47,22 +47,17 @@ exports.createDrawing = async (req, res) => {
       return res.status(400).json({ message: 'Please upload an image' });
     }
 
-    // Validate file type
-    if (!req.file.mimetype.startsWith('image/')) {
-      return res.status(400).json({ message: 'Please upload a valid image file' });
-    }
-
-    // Upload to cloudinary
-    const result = await cloudinary.uploader.upload(req.file.path, {
-      folder: 'drawings',
-      resource_type: 'auto'
+    // Log file details for debugging
+    console.log('Received file:', {
+      fieldname: req.file.fieldname,
+      mimetype: req.file.mimetype,
+      size: req.file.size
     });
 
-    // Remove the file from local storage after successful upload
-    fs.unlink(req.file.path, (err) => {
-      if (err) {
-        console.error('Error removing local file:', err);
-      }
+    // Upload buffer to cloudinary
+    const result = await cloudinary.uploader.upload(`data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`, {
+      folder: 'drawings',
+      resource_type: 'auto'
     });
 
     const drawing = await Drawing.create({
@@ -75,16 +70,8 @@ exports.createDrawing = async (req, res) => {
 
     res.status(201).json(drawing);
   } catch (error) {
-    // If there's an error, try to remove the uploaded file
-    if (req.file) {
-      fs.unlink(req.file.path, (err) => {
-        if (err) {
-          console.error('Error removing local file after upload error:', err);
-        }
-      });
-    }
     console.error('Error creating drawing:', error);
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: error.message || 'Error uploading image to Cloudinary' });
   }
 };
 

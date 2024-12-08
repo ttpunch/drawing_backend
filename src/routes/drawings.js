@@ -13,17 +13,11 @@ const {
   rateDrawing
 } = require('../controllers/drawingController');
 
-// Configure multer for file upload
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, path.join(process.cwd(), 'uploads'));
-  },
-  filename: function (req, file, cb) {
-    cb(null, `${Date.now()}-${file.originalname}`);
-  }
-});
+// Configure multer for memory storage instead of disk storage
+const storage = multer.memoryStorage();
 
 const fileFilter = (req, file, cb) => {
+  // Check file type
   if (file.mimetype.startsWith('image/')) {
     cb(null, true);
   } else {
@@ -31,7 +25,7 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
-const upload = multer({ 
+const upload = multer({
   storage: storage,
   fileFilter: fileFilter,
   limits: {
@@ -39,13 +33,24 @@ const upload = multer({
   }
 });
 
+// Error handling middleware for multer
+const handleMulterError = (err, req, res, next) => {
+  if (err instanceof multer.MulterError) {
+    if (err.code === 'LIMIT_FILE_SIZE') {
+      return res.status(400).json({ message: 'File too large. Maximum size is 5MB.' });
+    }
+    return res.status(400).json({ message: err.message });
+  }
+  next(err);
+};
+
 // Public routes
 router.get('/', getAllDrawings);
 router.get('/:id', getDrawing);
 
 // Protected routes
 router.use(protect);
-router.post('/', upload.single('image'), createDrawing);
+router.post('/', upload.single('image'), handleMulterError, createDrawing);
 router.put('/:id', updateDrawing);
 router.delete('/:id', deleteDrawing);
 
